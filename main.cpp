@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <vector>
 #include "Generator/key_gen.h"
+#include <iomanip>
 
 std::vector<IX_NAME_SPACE::RequestEntry> key_array;
 
@@ -30,11 +31,13 @@ namespace IX_NAME_SPACE {
         while (num > 0) {
             if (limiter->reqeust()) {
 //                target_queue_ptr->push_back(gen->getNext());
-                std::cout << gen->get_op() << " " << num << std::endl;
+                // TODO: change the std::vector into a more concurrent data structure
+                // TO Shangyu, here you can use a file to insert the entries.
+                std::cout << std::fixed << gen->get_op() << "\t" << gen->getNext()._key << "\t" << std::endl;
                 num--;
             }
         }
-        std::cout<< "end of running " << num <<std::endl;
+        std::cout << "end of running " << num << std::endl;
         return;
     }
 
@@ -66,10 +69,10 @@ namespace IX_NAME_SPACE {
 };
 
 
-void fill_by_two_threads(int duration, int num) {
+void fill_by_two_threads(int duration, int num, float read_qps, float write_qps) {
 //    },pthread_t reader,pthread_t writer) {
-    float read_speed = 100;
-    float write_speed = 200;
+    float read_speed = read_qps;
+    float write_speed = write_qps;
     pthread_t reader, writer;
     IX_NAME_SPACE::InserterArgs reader_arg = IX_NAME_SPACE::InserterArgs(read_speed, num * (read_speed / (read_speed +
                                                                                                           write_speed)));
@@ -96,7 +99,17 @@ void fill_by_two_threads(int duration, int num) {
 int main() {
     pthread_t read_thread_id;
     int a = 100;
-    fill_by_two_threads(10, 1 * 1000);
+    fill_by_two_threads(10, 1 * 1000, 100, 200);
+
+    // TO Shangyu:
+    // The easiest way to generate a R/W shifting workload, for example, you can run the following functions for many times
+    fill_by_two_threads(10, 1 * 1000, 200, 200); // this is a R:W 50% to 50%
+    fill_by_two_threads(10, 10 * 1000, 800, 200); // this is a R:W 80% : 20%
+    fill_by_two_threads(10, 1000 * 1000, 200, 200); // this is a R:W 50% to 50% workload again
+    // the duration and num, as you can see in the definition of the function, if the system run out of num first,
+    // the worker threads will shot and the main thread will sleep, until it's awaken.
+    // However, if the duration time is run out of first, it will shutdown the threads, so you don;t need to worry about the
+    // total number of it.
 
     return 0;
 }

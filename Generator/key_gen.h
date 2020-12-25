@@ -14,6 +14,8 @@
 namespace IX_NAME_SPACE {
     class KeyGen {
         // haven't figure it out yet.
+        // TODO: add other generator hear, for now we use just the ... rand()
+        // TO Shangyu: you can add some other generation here.
     private:
         OperationType _op;
     public:
@@ -26,10 +28,10 @@ namespace IX_NAME_SPACE {
             return RequestEntry(_op, (double) rand());
         }
 
-        RequestEntry getNext(OperationType op) {
-            srand(time(NULL));
-            return RequestEntry(op, (double) rand());
-        }
+//        RequestEntry getNext(OperationType op) {
+//            srand(time(NULL));
+//            return RequestEntry(op, (double) rand());
+//        }
 
         OperationType get_op() { return _op; }
     };

@@ -41,6 +41,7 @@ namespace IX_NAME_SPACE {
 //    };
     class RequestEntry {
         OperationType _op;
+    public:
         double _key;
 //        Slice _value; // allow to be empty
 //        double _endKey = 0;// allow to be empty
