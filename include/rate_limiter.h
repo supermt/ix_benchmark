@@ -7,6 +7,7 @@
 
 #include <mutex>
 #include <atomic>
+#include "format.h"
 
 struct ms_clock {
     using rep = std::chrono::milliseconds::rep;
