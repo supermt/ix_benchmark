@@ -3,13 +3,15 @@
 #include <unistd.h>
 #include "include/slice.h"
 #include "include/format.h"
-#include "op_bucket.h"
+#include "container/op_bucket.h"
 #include <pthread.h>
 #include <vector>
-#include "Generator/key_gen.h"
+#include "generator/key_gen.h"
 #include <iomanip>
+#include "container/concurrentqueue.h"
 
-std::vector<IX_NAME_SPACE::RequestEntry> key_array;
+//std::vector<IX_NAME_SPACE::RequestEntry> key_array;
+moodycamel::ConcurrentQueue<IX_NAME_SPACE::RequestEntry> key_array;
 
 auto time_window_size = IX_NAME_SPACE::ms_clock::duration(1000);
 
@@ -26,18 +28,20 @@ namespace IX_NAME_SPACE {
         return result;
     }
 
-    void fill_the_input_queue(std::vector<IX_NAME_SPACE::RequestEntry> *target_queue_ptr, int num, RateLimiter *limiter,
+    void fill_the_input_queue(moodycamel::ConcurrentQueue<IX_NAME_SPACE::RequestEntry> *target_queue_ptr, int num,
+                              RateLimiter *limiter,
                               KeyGen *gen) {
         while (num > 0) {
             if (limiter->reqeust()) {
 //                target_queue_ptr->push_back(gen->getNext());
+                target_queue_ptr->enqueue(gen->getNext());
                 // TODO: change the std::vector into a more concurrent data structure
                 // TO Shangyu, here you can use a file to insert the entries.
-                std::cout << std::fixed << gen->get_op() << "\t" << gen->getNext()._key << "\t" << std::endl;
+//                std::cout << std::fixed << gen->get_op() << "\t" << gen->getNext()._key << "\t" << std::endl;
                 num--;
             }
         }
-        std::cout << "end of running " << num << std::endl;
+        std::cout << "end of running " << target_queue_ptr->size_approx() << std::endl;
         return;
     }
 
