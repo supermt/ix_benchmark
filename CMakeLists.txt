@@ -8,7 +8,7 @@ include_directories(
     "."
 )
 
-add_library(ix_benchmark "")
+add_library(ix_benchmark "" utils/reader.cpp utils/writer.cpp utils/producer.cpp)
 target_sources(ix_benchmark
         PRIVATE
         "utils/rate_limiter.cpp"

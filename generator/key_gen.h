@@ -34,6 +34,8 @@ namespace IX_NAME_SPACE {
 //        }
 
         OperationType get_op() { return _op; }
+
+        void set_op(OperationType op) { _op = op; }
     };
 
 }
