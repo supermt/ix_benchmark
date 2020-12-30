@@ -8,8 +8,8 @@
 #pragma once
 
 #include <stdlib.h>
-#include "../include/format.h"
-#include "../container/op_bucket.h"
+#include "include/format.h"
+#include "include/container/op_bucket.h"
 
 namespace IX_NAME_SPACE {
     class KeyGen {

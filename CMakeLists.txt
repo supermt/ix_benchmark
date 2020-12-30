@@ -2,28 +2,28 @@ cmake_minimum_required(VERSION 3.17)
 project(ix_benchmark)
 
 set(CMAKE_CXX_STANDARD 14)
-set(SOURCES
-        utils/rate_limiter.cpp
-        include/rate_limiter.h
-        container/op_bucket.cpp
-        container/op_bucket.h
-        include/format.h
-        include/slice.h
-        include/ix_namespace.h
-        utils/slice.cpp
-        generator/key_gen.h
-        container/concurrentqueue.h)
 
-find_package(Threads)
+include_directories(
+    "${PROJECT_BINARY_DIR}/include"
+    "."
+)
 
-add_library(ix_interfaces INTERFACE)
-target_link_libraries(ix_interfaces INTERFACE ${CMAKE_THREAD_LIBS_INIT})
-target_include_directories(ix_interfaces INTERFACE include)
+add_library(ix_benchmark "")
+target_sources(ix_benchmark
+        PRIVATE
+        "utils/rate_limiter.cpp"
+        "utils/slice.cpp"
+        "generator/key_gen.h"
+        "utils/op_bucket.cpp"
+        )
 
-add_executable(producer_test producer_test.cpp ${SOURCES})
-add_executable(ix_benchmark producer_test.cpp ${SOURCES})
+target_include_directories(ix_benchmark
+        PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        )
 
-set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(ix_benchmark Threads::Threads)
 
-target_link_libraries(producer_test ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(ix_benchmark ${CMAKE_THREAD_LIBS_INIT})
+add_executable(producer_test "producer_test.cpp")
+target_link_libraries(producer_test ix_benchmark)
