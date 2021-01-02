@@ -3,6 +3,7 @@
 //
 #include "include/producer.h"
 #include <iostream>
+#include <unistd.h>
 
 namespace IX_NAME_SPACE {
 
@@ -66,27 +67,21 @@ namespace IX_NAME_SPACE {
     }
 
     void WorkloadEngine::consume() {
-        RequestEntry temp;
-        while (_total_num > 0) {
-            if (_interrupt) {
-                break; // once the value is set to true, break the loop
-            }
-            while (buffer_queue->try_dequeue(temp)) {
-                // we won't interrupt the system until the last element being poped out.
-                // call the output function, this function can be set by another function pointer
-                std::cout << "key: " << temp._key << " type: " << temp._op << std::endl;
-                this->output_func(temp);
-                _total_num -= 1;
-                // thread-safely pop one out.
-            }
-
-        }
-//        int num = _total_num.load();
-//        while (num > 0) {
+        sleep(10);
+//        RequestEntry temp;
+//        while (_total_num > 0) {
+//            if (_interrupt) {
+//                break; // once the value is set to true, break the loop
+//            }
 //            while (buffer_queue->try_dequeue(temp)) {
-//                std::cout << "dequeue the entry: " << std::fixed << temp._key << " entry seq: " << num << std::endl;
-//                num--;
-//            };
+//                // we won't interrupt the system until the last element being poped out.
+//                // call the output function, this function can be set by another function pointer
+//                std::cout << "key: " << temp._key << " type: " << temp._op << std::endl;
+//                this->output_func(temp);
+//                _total_num -= 1;
+//                // thread-safely pop one out.
+//            }
+//
 //        }
 
     }

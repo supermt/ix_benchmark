@@ -29,20 +29,22 @@ namespace IX_NAME_SPACE {
 
     class scenario;
 
+    typedef moodycamel::ConcurrentQueue<RequestEntry> RequestQueue;
+
     class Producer {
     public:
         long _num;
         KeyGen _gen;
         const bool depathed_or_not = true; // just for cases
 
-        moodycamel::ConcurrentQueue<RequestEntry> *target_array_ptr;
+        RequestQueue *target_array_ptr;
         RateLimiter _limiter;
 
         virtual void initial_ken_gen() = 0;
 
         pthread_t worker_id = -1;
     public:
-        Producer(int num, float qps, moodycamel::ConcurrentQueue<RequestEntry> &key_array)
+        Producer(int num, float qps, RequestQueue &key_array)
                 : _limiter(qps, default_time_window_size) {
             target_array_ptr = &key_array;
             _num = num;
@@ -50,7 +52,7 @@ namespace IX_NAME_SPACE {
         }
 
 
-        Producer(int duration, int num, float qps, moodycamel::ConcurrentQueue<RequestEntry> &key_array)
+        Producer(int duration, int num, float qps, RequestQueue &key_array)
                 : _limiter(qps, default_time_window_size) {
             target_array_ptr = &key_array;
             _num = std::min(static_cast<int>(duration * qps), num);
@@ -82,13 +84,13 @@ namespace IX_NAME_SPACE {
     public:
         Reader(int duration,
                int num, float qps,
-               moodycamel::ConcurrentQueue<RequestEntry> &key_array) :
+               RequestQueue &key_array) :
                 Producer(duration, num, qps, key_array) {
 //            _gen = KeyGen(kQuery);
             initial_ken_gen();
         }
 
-        Reader(long num, float qps, moodycamel::ConcurrentQueue<RequestEntry> &queue_ptr)
+        Reader(long num, float qps, RequestQueue &queue_ptr)
                 : Producer(num, qps, queue_ptr) {
 //            _gen = KeyGen(kQuery);
             initial_ken_gen();
@@ -109,13 +111,13 @@ namespace IX_NAME_SPACE {
     public:
         Writer(int duration,
                int num, float qps,
-               moodycamel::ConcurrentQueue<RequestEntry> &key_array) :
+               RequestQueue &key_array) :
                 Producer(duration, num, qps, key_array) {
 //            _gen = KeyGen(kWrite);
             initial_ken_gen();
         }
 
-        Writer(long num, float qps, moodycamel::ConcurrentQueue<RequestEntry> &queue_ptr)
+        Writer(long num, float qps, RequestQueue &queue_ptr)
                 : Producer(num, qps, queue_ptr) {
             initial_ken_gen();
         }
@@ -137,7 +139,7 @@ namespace IX_NAME_SPACE {
 
         std::map<pthread_t, Producer *> running_threads;
 
-        moodycamel::ConcurrentQueue<RequestEntry> *buffer_queue;
+        RequestQueue *buffer_queue;
 
         std::atomic<bool> _interrupt;
         std::atomic<long> _total_num;
@@ -158,7 +160,7 @@ namespace IX_NAME_SPACE {
         }
 
         inline void create_entry_container() {
-            this->buffer_queue = new moodycamel::ConcurrentQueue<RequestEntry>();
+            this->buffer_queue = new RequestQueue();
         }
 
         inline workload_tuple add_reader(Reader &reader) {

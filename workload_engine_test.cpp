@@ -17,8 +17,8 @@ int main() {
 //    pthread_exit(NULL);
     test_engine.start_workloads();
     test_engine.consume();
-//    sleep(1);
-//    test_engine.interrupt();
+    sleep(1);
+    test_engine.interrupt();
 
 //    std::cout << sizeof(test_engine) << " " << test_engine.get_workload_size().reader_num << std::endl;
 }
