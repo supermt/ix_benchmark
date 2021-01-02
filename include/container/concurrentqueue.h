@@ -1,4 +1,4 @@
-// Provides a C++11 implementation of a multi-producer, multi-consumer lock-free queue.
+// Provides a C++11 implementation of a multi-Producer, multi-consumer lock-free queue.
 // An overview, including benchmark results, is provided here:
 //     http://moodycamel.com/blog/2014/a-fast-general-purpose-lock-free-queue-for-c++
 // The full design is also described in excruciating detail at:
@@ -362,25 +362,25 @@ namespace moodycamel {
         // is provided. Must be a power of 2.
         static const size_t BLOCK_SIZE = 32;
 
-        // For explicit producers (i.e. when using a producer token), the block is
+        // For explicit producers (i.e. when using a Producer token), the block is
         // checked for being empty by iterating through a list of flags, one per element.
         // For large block sizes, this is too inefficient, and switching to an atomic
         // counter-based approach is faster. The switch is made for block sizes strictly
         // larger than this threshold.
         static const size_t EXPLICIT_BLOCK_EMPTY_COUNTER_THRESHOLD = 32;
 
-        // How many full blocks can be expected for a single explicit producer? This should
+        // How many full blocks can be expected for a single explicit Producer? This should
         // reflect that number's maximum for optimal performance. Must be a power of 2.
         static const size_t EXPLICIT_INITIAL_INDEX_SIZE = 32;
 
-        // How many full blocks can be expected for a single implicit producer? This should
+        // How many full blocks can be expected for a single implicit Producer? This should
         // reflect that number's maximum for optimal performance. Must be a power of 2.
         static const size_t IMPLICIT_INITIAL_INDEX_SIZE = 32;
 
         // The initial size of the hash table mapping thread IDs to implicit producers.
         // Note that the hash is resized every time it becomes half full.
         // Must be a power of two, and either 0 or at least 1. If 0, implicit production
-        // (using the enqueue methods without an explicit producer token) is disabled.
+        // (using the enqueue methods without an explicit Producer token) is disabled.
         static const size_t INITIAL_IMPLICIT_PRODUCER_HASH_SIZE = 32;
 
         // Controls the number of items that an explicit consumer (i.e. one with a token)
@@ -863,7 +863,7 @@ namespace moodycamel {
         // actual number of elements that can be inserted without additional memory
         // allocation depends on the number of producers and the block size (e.g. if
         // the block size is equal to `capacity`, only a single block will be allocated
-        // up-front, which means only a single producer will be able to enqueue elements
+        // up-front, which means only a single Producer will be able to enqueue elements
         // without an extra allocation -- blocks aren't shared between producers).
         // This method is not thread safe -- it is up to the user to ensure that the
         // queue is fully constructed before it starts being used by other threads (this
@@ -891,7 +891,7 @@ namespace moodycamel {
 
         // Computes the correct amount of pre-allocated blocks for you based
         // on the minimum number of elements you want available at any given
-        // time, and the maximum concurrent number of each type of producer.
+        // time, and the maximum concurrent number of each type of Producer.
         ConcurrentQueue(size_t minCapacity, size_t maxExplicitProducers, size_t maxImplicitProducers)
                 : producerListTail(nullptr),
                   producerCount(0),
@@ -925,7 +925,7 @@ namespace moodycamel {
                 ptr = next;
             }
 
-            // Destroy implicit producer hash tables
+            // Destroy implicit Producer hash tables
             MOODYCAMEL_CONSTEXPR_IF (INITIAL_IMPLICIT_PRODUCER_HASH_SIZE != 0) {
                 auto hash = implicitProducerHash.load(std::memory_order_relaxed);
                 while (hash != nullptr) {
@@ -1062,7 +1062,7 @@ namespace moodycamel {
             else return inner_enqueue<CanAlloc>(std::move(item));
         }
 
-        // Enqueues a single item (by copying it) using an explicit producer token.
+        // Enqueues a single item (by copying it) using an explicit Producer token.
         // Allocates memory if required. Only fails if memory allocation fails (or
         // Traits::MAX_SUBQUEUE_SIZE has been defined and would be surpassed).
         // Thread-safe.
@@ -1070,7 +1070,7 @@ namespace moodycamel {
             return inner_enqueue<CanAlloc>(token, item);
         }
 
-        // Enqueues a single item (by moving it, if possible) using an explicit producer token.
+        // Enqueues a single item (by moving it, if possible) using an explicit Producer token.
         // Allocates memory if required. Only fails if memory allocation fails (or
         // Traits::MAX_SUBQUEUE_SIZE has been defined and would be surpassed).
         // Thread-safe.
@@ -1090,7 +1090,7 @@ namespace moodycamel {
             else return inner_enqueue_bulk<CanAlloc>(itemFirst, count);
         }
 
-        // Enqueues several items using an explicit producer token.
+        // Enqueues several items using an explicit Producer token.
         // Allocates memory if required. Only fails if memory allocation fails
         // (or Traits::MAX_SUBQUEUE_SIZE has been defined and would be surpassed).
         // Note: Use std::make_move_iterator if the elements should be moved
@@ -1112,7 +1112,7 @@ namespace moodycamel {
         }
 
         // Enqueues a single item (by moving it, if possible).
-        // Does not allocate memory (except for one-time implicit producer).
+        // Does not allocate memory (except for one-time implicit Producer).
         // Fails if not enough room to enqueue (or implicit production is
         // disabled because Traits::INITIAL_IMPLICIT_PRODUCER_HASH_SIZE is 0).
         // Thread-safe.
@@ -1121,14 +1121,14 @@ namespace moodycamel {
             else return inner_enqueue<CannotAlloc>(std::move(item));
         }
 
-        // Enqueues a single item (by copying it) using an explicit producer token.
+        // Enqueues a single item (by copying it) using an explicit Producer token.
         // Does not allocate memory. Fails if not enough room to enqueue.
         // Thread-safe.
         inline bool try_enqueue(producer_token_t const &token, T const &item) {
             return inner_enqueue<CannotAlloc>(token, item);
         }
 
-        // Enqueues a single item (by moving it, if possible) using an explicit producer token.
+        // Enqueues a single item (by moving it, if possible) using an explicit Producer token.
         // Does not allocate memory. Fails if not enough room to enqueue.
         // Thread-safe.
         inline bool try_enqueue(producer_token_t const &token, T &&item) {
@@ -1136,7 +1136,7 @@ namespace moodycamel {
         }
 
         // Enqueues several items.
-        // Does not allocate memory (except for one-time implicit producer).
+        // Does not allocate memory (except for one-time implicit Producer).
         // Fails if not enough room to enqueue (or implicit production is
         // disabled because Traits::INITIAL_IMPLICIT_PRODUCER_HASH_SIZE is 0).
         // Note: Use std::make_move_iterator if the elements should be moved
@@ -1148,7 +1148,7 @@ namespace moodycamel {
             else return inner_enqueue_bulk<CannotAlloc>(itemFirst, count);
         }
 
-        // Enqueues several items using an explicit producer token.
+        // Enqueues several items using an explicit Producer token.
         // Does not allocate memory. Fails if not enough room to enqueue.
         // Note: Use std::make_move_iterator if the elements should be moved
         // instead of copied.
@@ -1160,13 +1160,13 @@ namespace moodycamel {
 
 
         // Attempts to dequeue from the queue.
-        // Returns false if all producer streams appeared empty at the time they
+        // Returns false if all Producer streams appeared empty at the time they
         // were checked (so, the queue is likely but not guaranteed to be empty).
         // Never allocates. Thread-safe.
         template<typename U>
         bool try_dequeue(U &item) {
-            // Instead of simply trying each producer in turn (which could cause needless contention on the first
-            // producer), we score them heuristically.
+            // Instead of simply trying each Producer in turn (which could cause needless contention on the first
+            // Producer), we score them heuristically.
             size_t nonEmptyCount = 0;
             ProducerBase *best = nullptr;
             size_t bestSize = 0;
@@ -1199,10 +1199,10 @@ namespace moodycamel {
         }
 
         // Attempts to dequeue from the queue.
-        // Returns false if all producer streams appeared empty at the time they
+        // Returns false if all Producer streams appeared empty at the time they
         // were checked (so, the queue is likely but not guaranteed to be empty).
         // This differs from the try_dequeue(item) method in that this one does
-        // not attempt to reduce contention by interleaving the order that producer
+        // not attempt to reduce contention by interleaving the order that Producer
         // streams are dequeued from. So, using this method can reduce overall throughput
         // under contention, but will give more predictable results in single-threaded
         // consumer scenarios. This is mostly only useful for internal unit tests.
@@ -1218,16 +1218,16 @@ namespace moodycamel {
         }
 
         // Attempts to dequeue from the queue using an explicit consumer token.
-        // Returns false if all producer streams appeared empty at the time they
+        // Returns false if all Producer streams appeared empty at the time they
         // were checked (so, the queue is likely but not guaranteed to be empty).
         // Never allocates. Thread-safe.
         template<typename U>
         bool try_dequeue(consumer_token_t &token, U &item) {
             // The idea is roughly as follows:
-            // Every 256 items from one producer, make everyone rotate (increase the global offset) -> this means the highest efficiency consumer dictates the rotation speed of everyone else, more or less
+            // Every 256 items from one Producer, make everyone rotate (increase the global offset) -> this means the highest efficiency consumer dictates the rotation speed of everyone else, more or less
             // If you see that the global offset has changed, you must reset your consumption counter and move to your designated place
-            // If there's no items where you're supposed to be, keep moving until you find a producer with some items
-            // If the global offset has not changed but you've run out of items to consume, move over from your current position until you find an producer with something in it
+            // If there's no items where you're supposed to be, keep moving until you find a Producer with some items
+            // If the global offset has not changed but you've run out of items to consume, move over from your current position until you find an Producer with something in it
 
             if (token.desiredProducer == nullptr ||
                 token.lastKnownGlobalOffset != globalExplicitConsumerOffset.load(std::memory_order_relaxed)) {
@@ -1266,7 +1266,7 @@ namespace moodycamel {
 
         // Attempts to dequeue several elements from the queue.
         // Returns the number of items actually dequeued.
-        // Returns 0 if all producer streams appeared empty at the time they
+        // Returns 0 if all Producer streams appeared empty at the time they
         // were checked (so, the queue is likely but not guaranteed to be empty).
         // Never allocates. Thread-safe.
         template<typename It>
@@ -1283,7 +1283,7 @@ namespace moodycamel {
 
         // Attempts to dequeue several elements from the queue using an explicit consumer token.
         // Returns the number of items actually dequeued.
-        // Returns 0 if all producer streams appeared empty at the time they
+        // Returns 0 if all Producer streams appeared empty at the time they
         // were checked (so, the queue is likely but not guaranteed to be empty).
         // Never allocates. Thread-safe.
         template<typename It>
@@ -1331,10 +1331,10 @@ namespace moodycamel {
         }
 
 
-        // Attempts to dequeue from a specific producer's inner queue.
-        // If you happen to know which producer you want to dequeue from, this
+        // Attempts to dequeue from a specific Producer's inner queue.
+        // If you happen to know which Producer you want to dequeue from, this
         // is significantly faster than using the general-case try_dequeue methods.
-        // Returns false if the producer's queue appeared empty at the time it
+        // Returns false if the Producer's queue appeared empty at the time it
         // was checked (so, the queue is likely but not guaranteed to be empty).
         // Never allocates. Thread-safe.
         template<typename U>
@@ -1342,11 +1342,11 @@ namespace moodycamel {
             return static_cast<ExplicitProducer *>(producer.producer)->dequeue(item);
         }
 
-        // Attempts to dequeue several elements from a specific producer's inner queue.
+        // Attempts to dequeue several elements from a specific Producer's inner queue.
         // Returns the number of items actually dequeued.
-        // If you happen to know which producer you want to dequeue from, this
+        // If you happen to know which Producer you want to dequeue from, this
         // is significantly faster than using the general-case try_dequeue methods.
-        // Returns 0 if the producer's queue appeared empty at the time it
+        // Returns 0 if the Producer's queue appeared empty at the time it
         // was checked (so, the queue is likely but not guaranteed to be empty).
         // Never allocates. Thread-safe.
         template<typename It>
@@ -2488,7 +2488,7 @@ private:
         private:
             std::atomic<BlockIndexHeader *> blockIndex;
 
-            // To be used by producer only -- consumer must use the ones in referenced by blockIndex
+            // To be used by Producer only -- consumer must use the ones in referenced by blockIndex
             size_t pr_blockIndexSlotsUsed;
             size_t pr_blockIndexSize;
             size_t pr_blockIndexFront;        // Next slot (not current)
@@ -2667,7 +2667,7 @@ private:
 #ifdef MCDBGQ_NOLOCKFREE_IMPLICITPRODBLOCKINDEX
                             // Note: Acquiring the mutex with every dequeue instead of only when a block
                         // is released is very sub-optimal, but it is, after all, purely debug code.
-                        debug::DebugLock lock(producer->mutex);
+                        debug::DebugLock lock(Producer->mutex);
 #endif
                             struct Guard {
                                 Block *block;
@@ -3019,7 +3019,7 @@ private:
             template<AllocationMode allocMode>
             inline bool insert_block_index_entry(BlockIndexEntry *&idxEntry, index_t blockStartIndex) {
                 auto localBlockIndex = blockIndex.load(
-                        std::memory_order_relaxed);        // We're the only writer thread, relaxed is OK
+                        std::memory_order_relaxed);        // We're the only Writer thread, relaxed is OK
                 if (localBlockIndex == nullptr) {
                     return false;  // this can happen if new_block_index failed in the constructor
                 }
@@ -3376,17 +3376,17 @@ private:
                                                              std::memory_order_relaxed));
 
 #ifdef MOODYCAMEL_QUEUE_INTERNAL_DEBUG
-            if (producer->isExplicit) {
+            if (Producer->isExplicit) {
             auto prevTailExplicit = explicitProducers.load(std::memory_order_relaxed);
             do {
-                static_cast<ExplicitProducer*>(producer)->nextExplicitProducer = prevTailExplicit;
-            } while (!explicitProducers.compare_exchange_weak(prevTailExplicit, static_cast<ExplicitProducer*>(producer), std::memory_order_release, std::memory_order_relaxed));
+                static_cast<ExplicitProducer*>(Producer)->nextExplicitProducer = prevTailExplicit;
+            } while (!explicitProducers.compare_exchange_weak(prevTailExplicit, static_cast<ExplicitProducer*>(Producer), std::memory_order_release, std::memory_order_relaxed));
         }
         else {
             auto prevTailImplicit = implicitProducers.load(std::memory_order_relaxed);
             do {
-                static_cast<ImplicitProducer*>(producer)->nextImplicitProducer = prevTailImplicit;
-            } while (!implicitProducers.compare_exchange_weak(prevTailImplicit, static_cast<ImplicitProducer*>(producer), std::memory_order_release, std::memory_order_relaxed));
+                static_cast<ImplicitProducer*>(Producer)->nextImplicitProducer = prevTailImplicit;
+            } while (!implicitProducers.compare_exchange_weak(prevTailImplicit, static_cast<ImplicitProducer*>(Producer), std::memory_order_release, std::memory_order_relaxed));
         }
 #endif
 
@@ -3404,7 +3404,7 @@ private:
 
 
         //////////////////////////////////
-        // Implicit producer hash
+        // Implicit Producer hash
         //////////////////////////////////
 
         struct ImplicitProducerKVP {
@@ -3462,7 +3462,7 @@ private:
             MOODYCAMEL_CONSTEXPR_IF (INITIAL_IMPLICIT_PRODUCER_HASH_SIZE == 0) {
                 return;
             } else {
-                // Swap (assumes our implicit producer hash is initialized)
+                // Swap (assumes our implicit Producer hash is initialized)
                 initialImplicitProducerHashEntries.swap(other.initialImplicitProducerHashEntries);
                 initialImplicitProducerHash.entries = &initialImplicitProducerHashEntries[0];
                 other.initialImplicitProducerHash.entries = &other.initialImplicitProducerHashEntries[0];
@@ -3618,9 +3618,9 @@ private:
                     }
 
 #ifdef MOODYCAMEL_CPP11_THREAD_LOCAL_SUPPORTED
-                    producer->threadExitListener.callback = &ConcurrentQueue::implicit_producer_thread_exited_callback;
-                producer->threadExitListener.userData = producer;
-                details::ThreadExitNotifier::subscribe(&producer->threadExitListener);
+                    Producer->threadExitListener.callback = &ConcurrentQueue::implicit_producer_thread_exited_callback;
+                Producer->threadExitListener.userData = Producer;
+                details::ThreadExitNotifier::subscribe(&Producer->threadExitListener);
 #endif
 
                     auto index = hashedId;
@@ -3654,10 +3654,10 @@ private:
         }
 
 #ifdef MOODYCAMEL_CPP11_THREAD_LOCAL_SUPPORTED
-        void implicit_producer_thread_exited(ImplicitProducer* producer)
+        void implicit_producer_thread_exited(ImplicitProducer* Producer)
     {
         // Remove from thread exit listeners
-        details::ThreadExitNotifier::unsubscribe(&producer->threadExitListener);
+        details::ThreadExitNotifier::unsubscribe(&Producer->threadExitListener);
 
         // Remove from hash
 #ifdef MCDBGQ_NOLOCKFREE_IMPLICITPRODHASH
@@ -3670,7 +3670,7 @@ private:
         details::thread_id_t probedKey;
 
         // We need to traverse all the hashes just in case other threads aren't on the current one yet and are
-        // trying to add an entry thinking there's a free slot (because they reused a producer)
+        // trying to add an entry thinking there's a free slot (because they reused a Producer)
         for (; hash != nullptr; hash = hash->prev) {
             auto index = hashedId;
             do {
@@ -3685,14 +3685,14 @@ private:
         }
 
         // Mark the queue as being recyclable
-        producer->inactive.store(true, std::memory_order_release);
+        Producer->inactive.store(true, std::memory_order_release);
     }
 
     static void implicit_producer_thread_exited_callback(void* userData)
     {
-        auto producer = static_cast<ImplicitProducer*>(userData);
-        auto queue = producer->parent;
-        queue->implicit_producer_thread_exited(producer);
+        auto Producer = static_cast<ImplicitProducer*>(userData);
+        auto queue = Producer->parent;
+        queue->implicit_producer_thread_exited(Producer);
     }
 #endif
 

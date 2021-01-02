@@ -18,29 +18,29 @@ auto time_window_size = IX_NAME_SPACE::ms_clock::duration(1000);
 namespace IX_NAME_SPACE {
 
     void fill_by_two_threads(int duration, int num, float read_qps, float write_qps) {
-//    },pthread_t reader,pthread_t writer) {
+//    },pthread_t Reader,pthread_t Writer) {
         float read_speed = read_qps;
         float write_speed = write_qps;
 
-        reader worker1(duration, num * (read_speed / (read_speed + write_speed)),
+        Reader worker1(duration, num * (read_speed / (read_speed + write_speed)),
                        read_qps, key_array);
-        writer worker2(duration, num * (write_speed / (read_speed + write_speed)),
+        Writer worker2(duration, num * (write_speed / (read_speed + write_speed)),
                        write_qps, key_array);
         pthread_t workerid1, workerid2;
         workerid1 = worker1.create_inserter();
         workerid2 = worker2.create_inserter();
+//        std::cout << sizeof(worker1) << std::endl;
 
         std::cout << "poper started" << std::endl;
 
         IX_NAME_SPACE::RequestEntry temp;
-        int repeated_empty = 0;
-//        while (num > 0) {
-//            while (key_array.try_dequeue(temp)) {
-////                std::cout << "dequeue the entry: " << std::fixed << temp._key << " entry seq: " << num << std::endl;
-//                num--;
-//            };
-//        }
 
+        while (num >0){
+            while(key_array.try_dequeue(temp)){
+                std::cout << "dequeue the entry: " << std::fixed << temp._key << " entry seq: " << num << std::endl;
+                num--;
+            };
+        }
 
         pthread_join(workerid1, NULL);
         pthread_join(workerid2, NULL);

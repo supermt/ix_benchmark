@@ -26,4 +26,6 @@ find_package(Threads REQUIRED)
 target_link_libraries(ix_benchmark Threads::Threads)
 
 add_executable(producer_test "producer_test.cpp")
+add_executable(workload_engine_test "workload_engine_test.cpp")
+
 target_link_libraries(producer_test ix_benchmark)
