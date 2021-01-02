@@ -9,7 +9,8 @@
 #include "rate_limiter.h"
 #include <pthread.h>
 #include "generator/key_gen.h"
-#include "container/concurrentqueue.h"
+#include "container/concurrentqueue.h" // this lib is not that reliable
+
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -33,6 +34,7 @@ namespace IX_NAME_SPACE {
         long _num;
         KeyGen _gen;
         const bool depathed_or_not = true; // just for cases
+
         moodycamel::ConcurrentQueue<RequestEntry> *target_array_ptr;
         RateLimiter _limiter;
 
@@ -197,7 +199,7 @@ namespace IX_NAME_SPACE {
         //        static void *output_function(void *args);
         static void default_output_function(RequestEntry single_request);
 
-        void set_output_func(void (*target_function)(RequestEntry )) {
+        void set_output_func(void (*target_function)(RequestEntry)) {
             this->output_func = target_function;
         }
 

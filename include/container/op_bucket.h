@@ -57,7 +57,8 @@ namespace IX_NAME_SPACE {
 
         RequestEntry(const RequestEntry &x) : _op(x._op), _key(x._key) {}
 
-        ~RequestEntry(){}
+        ~RequestEntry() {}
+
     };
 
 };

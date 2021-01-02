@@ -8,7 +8,7 @@ include_directories(
     "."
 )
 
-add_library(ix_benchmark "" include/container/atomic_queue.h)
+add_library(ix_benchmark "")
 target_sources(ix_benchmark
         PRIVATE
         "utils/rate_limiter.cpp"
@@ -27,8 +27,10 @@ target_include_directories(ix_benchmark
 # add this line, otherwise, it will lead to "undefined reference" false.
 link_libraries(ix_benchmark)
 
+# add needed dependencies
 find_package(Threads REQUIRED)
 target_link_libraries(ix_benchmark Threads::Threads)
+
 
 add_executable(producer_test "producer_test.cpp")
 add_executable(workload_engine_test "workload_engine_test.cpp")
