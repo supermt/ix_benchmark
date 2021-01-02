@@ -3513,7 +3513,7 @@ private:
             auto hashedId = details::hash_thread_id(id);
 
             auto mainHash = implicitProducerHash.load(std::memory_order_acquire);
-            assert(mainHash != nullptr);  // silence clang-tidy and MSVC warnings (hash cannot be null)
+//            assert(mainHash != nullptr);  // silence clang-tidy and MSVC warnings (hash cannot be null)
             for (auto hash = mainHash; hash != nullptr; hash = hash->prev) {
                 // Look for the id in this hash
                 auto index = hashedId;
@@ -3604,7 +3604,7 @@ private:
                 }
 
                 // If it's < three-quarters full, add to the old one anyway so that we don't have to wait for the next table
-                // to finish being allocated by another thread (and if we just finished allocating above, the condition will
+                // to interrupt being allocated by another thread (and if we just interrupt allocating above, the condition will
                 // always be true)
                 if (newCount < (mainHash->capacity >> 1) + (mainHash->capacity >> 2)) {
                     bool recycled;
@@ -3647,7 +3647,7 @@ private:
                 }
 
                 // Hmm, the old hash is quite full and somebody else is busy allocating a new one.
-                // We need to wait for the allocating thread to finish (if it succeeds, we add, if not,
+                // We need to wait for the allocating thread to interrupt (if it succeeds, we add, if not,
                 // we try to allocate ourselves).
                 mainHash = implicitProducerHash.load(std::memory_order_acquire);
             }

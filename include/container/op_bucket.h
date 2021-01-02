@@ -40,8 +40,8 @@ namespace IX_NAME_SPACE {
 //        RequestEntry(const RequestEntry &x) : _op(x._op), _key(x._key), _value(Slice(x._value)), _endKey(x._endKey) {}
 //    };
     class RequestEntry {
-        OperationType _op;
     public:
+        OperationType _op;
         double _key;
 //        Slice _value; // allow to be empty
 //        double _endKey = 0;// allow to be empty
@@ -56,6 +56,7 @@ namespace IX_NAME_SPACE {
         RequestEntry(OperationType type, double key) : _op(type), _key(key) {}
 
         RequestEntry(const RequestEntry &x) : _op(x._op), _key(x._key) {}
+
         ~RequestEntry(){}
     };
 

@@ -11,6 +11,7 @@
 #include "generator/key_gen.h"
 #include "container/concurrentqueue.h"
 #include <vector>
+#include <map>
 #include <algorithm>
 
 namespace IX_NAME_SPACE {
@@ -23,19 +24,21 @@ namespace IX_NAME_SPACE {
 
     class Producer;
 
+    class WorkloadEngine;
+
     class scenario;
 
     class Producer {
     public:
         long _num;
         KeyGen _gen;
-        pthread_t worker_id = -1;
         const bool depathed_or_not = true; // just for cases
         moodycamel::ConcurrentQueue<RequestEntry> *target_array_ptr;
         RateLimiter _limiter;
 
         virtual void initial_ken_gen() = 0;
 
+        pthread_t worker_id = -1;
     public:
         Producer(int num, float qps, moodycamel::ConcurrentQueue<RequestEntry> &key_array)
                 : _limiter(qps, default_time_window_size) {
@@ -69,14 +72,12 @@ namespace IX_NAME_SPACE {
         void fill_the_queue();
     };
 
-    class Reader : Producer {
+    class Reader : public Producer {
     private:
 //        InserterArgs args;
         void initial_ken_gen() override;
 
     public:
-
-
         Reader(int duration,
                int num, float qps,
                moodycamel::ConcurrentQueue<RequestEntry> &key_array) :
@@ -91,13 +92,14 @@ namespace IX_NAME_SPACE {
             initial_ken_gen();
         }
 
+
         pthread_t create_inserter() override;
 
         static void *reader_threads(void *args);
     };
 
     // size of one writer is 88, get by sizeof() function. small enough to maintain a vector.
-    class Writer : Producer {
+    class Writer : public Producer {
     private:
 //        InserterArgs args;
         void initial_ken_gen() override;
@@ -131,9 +133,15 @@ namespace IX_NAME_SPACE {
         std::vector<Reader> read_op_inserters;
         std::vector<Writer> write_op_inserters;
 
-        std::vector<pthread_t> running_threads;
+        std::map<pthread_t, Producer *> running_threads;
 
         moodycamel::ConcurrentQueue<RequestEntry> *buffer_queue;
+
+        std::atomic<bool> _interrupt;
+        std::atomic<long> _total_num;
+
+        void (*output_func)(RequestEntry single_request);
+
     public:
         struct workload_tuple {
             int reader_num;
@@ -151,30 +159,46 @@ namespace IX_NAME_SPACE {
             this->buffer_queue = new moodycamel::ConcurrentQueue<RequestEntry>();
         }
 
-        workload_tuple add_reader(Reader reader);
+        inline workload_tuple add_reader(Reader &reader) {
+            read_op_inserters.push_back(reader);
+            _total_num += reader._num;
+            return get_workload_size();
+        }
+
+        inline workload_tuple add_writer(Writer &writer) {
+            write_op_inserters.push_back(writer);
+            _total_num += writer._num;
+            return get_workload_size();
+        }
 
         workload_tuple add_reader(long num, float qps);
 
-        workload_tuple add_writer(Writer writer);
-
         workload_tuple add_writer(long num, float qps);
-
 
         void start_workloads();
 
         void consume();
 
+        long interrupt();
 
-        WorkloadEngine() {
+        WorkloadEngine() : _interrupt(false), _total_num(0) {
             read_op_inserters = std::vector<Reader>();
             write_op_inserters = std::vector<Writer>();
             create_entry_container();
+            output_func = default_output_function; // the function must be static!
         }
 
         ~WorkloadEngine() {
             read_op_inserters.clear();
             write_op_inserters.clear();
             delete this->buffer_queue;
+        }
+
+        //        static void *output_function(void *args);
+        static void default_output_function(RequestEntry single_request);
+
+        void set_output_func(void (*target_function)(RequestEntry )) {
+            this->output_func = target_function;
         }
 
     };

@@ -8,19 +8,24 @@ include_directories(
     "."
 )
 
-add_library(ix_benchmark "" utils/reader.cpp utils/writer.cpp utils/producer.cpp)
+add_library(ix_benchmark "" include/container/atomic_queue.h)
 target_sources(ix_benchmark
         PRIVATE
         "utils/rate_limiter.cpp"
         "utils/slice.cpp"
         "generator/key_gen.h"
         "utils/op_bucket.cpp"
+        "utils/reader.cpp"
+        "utils/writer.cpp"
+        "utils/producer.cpp"
         )
 
 target_include_directories(ix_benchmark
         PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         )
+# add this line, otherwise, it will lead to "undefined reference" false.
+link_libraries(ix_benchmark)
 
 find_package(Threads REQUIRED)
 target_link_libraries(ix_benchmark Threads::Threads)
