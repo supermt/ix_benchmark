@@ -3513,7 +3513,7 @@ private:
             auto hashedId = details::hash_thread_id(id);
 
             auto mainHash = implicitProducerHash.load(std::memory_order_acquire);
-//            assert(mainHash != nullptr);  // silence clang-tidy and MSVC warnings (hash cannot be null)
+            assert(mainHash != nullptr);  // silence clang-tidy and MSVC warnings (hash cannot be null)
             for (auto hash = mainHash; hash != nullptr; hash = hash->prev) {
                 // Look for the id in this hash
                 auto index = hashedId;

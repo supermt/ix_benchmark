@@ -14,6 +14,7 @@ namespace IX_NAME_SPACE {
     void Producer::fill_the_queue() {
         while (_num >= 0) {
             if (_limiter.reqeust()) {
+//                std::cout << _num << std::endl;
                 target_array_ptr->enqueue(_gen.getNext());
                 _num--;
             }
@@ -40,34 +41,19 @@ namespace IX_NAME_SPACE {
             // all threads is running.
             return;
         }
-        for (auto worker : read_op_inserters) {
-            if (worker.worker_id == -1) {
-                // this worker is not working.
-                pthread_t pid = worker.create_inserter();
-                // TODO: write a test case, check wether this will block the system.
-//                pthread_join(pid, NULL);
-                running_threads.insert(std::pair<pthread_t, Producer *>(pid, &worker));
-            } else {
-                // TODO: the thread is running. Check before we skip it.
-            }
-        }
 
-        for (auto worker : write_op_inserters) {
-            if (worker.worker_id == -1) {
-                // this worker is not working.
-                pthread_t pid = worker.create_inserter();
-                // TODO: write a test case, check wether this will block the system.
-//                pthread_join(pid, NULL);
-                running_threads.insert(std::pair<pthread_t, Producer *>(pid, &worker));
-            } else {
-                // TODO: the thread is running. Check before we skip it.
-            }
+        RequestQueue queue;
+        int input_count = 10000;
+        int i = 0;
+        for (i = 0; i < 10; i++) {
+            Reader reader(input_count, 10000, queue);
+            reader.create_inserter();
         }
 
     }
 
     void WorkloadEngine::consume() {
-        sleep(10);
+        sleep(2);
 //        RequestEntry temp;
 //        while (_total_num > 0) {
 //            if (_interrupt) {

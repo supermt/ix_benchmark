@@ -33,7 +33,7 @@ namespace IX_NAME_SPACE {
 
     class Producer {
     public:
-        long _num;
+        std::atomic<long> _num;
         KeyGen _gen;
         const bool depathed_or_not = true; // just for cases
 
@@ -61,7 +61,7 @@ namespace IX_NAME_SPACE {
 
         Producer(const Producer &instance) : _limiter(instance._limiter.limit_,
                                                       instance._limiter.interval_) {
-            _num = instance._num;
+            _num = instance._num.load();
             _gen = instance._gen;
             worker_id = instance.worker_id;
             target_array_ptr = instance.target_array_ptr;
@@ -185,17 +185,15 @@ namespace IX_NAME_SPACE {
 
         long interrupt();
 
-        WorkloadEngine() : _interrupt(false), _total_num(0) {
+        WorkloadEngine() : _interrupt(false), _total_num(0){
             read_op_inserters = std::vector<Reader>();
             write_op_inserters = std::vector<Writer>();
-            create_entry_container();
             output_func = default_output_function; // the function must be static!
         }
 
         ~WorkloadEngine() {
-            read_op_inserters.clear();
-            write_op_inserters.clear();
-            delete this->buffer_queue;
+//            read_op_inserters.clear();
+//            write_op_inserters.clear();
         }
 
         //        static void *output_function(void *args);
