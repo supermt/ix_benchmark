@@ -3,12 +3,16 @@ project(ix_benchmark)
 
 set(CMAKE_CXX_STANDARD 14)
 
+set(CMAKE_XCODE_GENERATE_SCHEME ON)
+set(CMAKE_XCODE_SCHEME_ADDRESS_SANITIZER ON)
+set(CMAKE_XCODE_SCHEME_ADDRESS_SANITIZER_USE_AFTER_RETURN ON)
+
 include_directories(
     "${PROJECT_BINARY_DIR}/include"
     "."
 )
 
-add_library(ix_benchmark "")
+add_library(ix_benchmark "" )
 target_sources(ix_benchmark
         PRIVATE
         "utils/rate_limiter.cpp"
@@ -18,6 +22,7 @@ target_sources(ix_benchmark
         "utils/reader.cpp"
         "utils/writer.cpp"
         "utils/producer.cpp"
+        "utils/key.cpp"
         )
 
 target_include_directories(ix_benchmark

@@ -44,9 +44,9 @@ namespace IX_NAME_SPACE {
 
         pthread_t worker_id = -1;
     public:
-        Producer(int num, float qps, RequestQueue &key_array)
+        Producer(int num, float qps, RequestQueue *key_array)
                 : _limiter(qps, default_time_window_size) {
-            target_array_ptr = &key_array;
+            target_array_ptr = key_array;
             _num = num;
             _gen = KeyGen();
         }
@@ -90,7 +90,7 @@ namespace IX_NAME_SPACE {
             initial_ken_gen();
         }
 
-        Reader(long num, float qps, RequestQueue &queue_ptr)
+        Reader(long num, float qps, RequestQueue *queue_ptr)
                 : Producer(num, qps, queue_ptr) {
 //            _gen = KeyGen(kQuery);
             initial_ken_gen();
@@ -117,7 +117,7 @@ namespace IX_NAME_SPACE {
             initial_ken_gen();
         }
 
-        Writer(long num, float qps, RequestQueue &queue_ptr)
+        Writer(long num, float qps, RequestQueue *queue_ptr)
                 : Producer(num, qps, queue_ptr) {
             initial_ken_gen();
         }
@@ -139,8 +139,6 @@ namespace IX_NAME_SPACE {
 
         std::map<pthread_t, Producer *> running_threads;
 
-        RequestQueue *buffer_queue;
-
         std::atomic<bool> _interrupt;
         std::atomic<long> _total_num;
 
@@ -155,14 +153,15 @@ namespace IX_NAME_SPACE {
             workload_tuple(int a, int b) : reader_num(a), writer_num(b) {}
         };
 
+        inline std::map<pthread_t, Producer *> get_thread_map() {
+            return running_threads;
+        }
+
         inline workload_tuple get_workload_size() {
             return WorkloadEngine::workload_tuple(read_op_inserters.size(),
                                                   write_op_inserters.size());
         }
 
-        inline void create_entry_container() {
-            this->buffer_queue = new RequestQueue();
-        }
 
         inline workload_tuple add_reader(Reader &reader) {
             read_op_inserters.push_back(reader);
@@ -204,9 +203,9 @@ namespace IX_NAME_SPACE {
 
     };
 
+    void BootstrapTheEngine(WorkloadEngine &test_engine);
 
-    // end of Workload Engine
-    static void BootstrapTheEngine(WorkloadEngine &test_engine);
+
 }; // end namespace
 
 

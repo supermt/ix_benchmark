@@ -10,7 +10,7 @@ namespace IX_NAME_SPACE {
     void *Reader::reader_threads(void *arg) {
         Producer *worker = Producer::parsed_from_voidptr(arg);
         if (worker->depathed_or_not) {
-            pthread_detach(pthread_self());
+//            pthread_detach(pthread_self());
         }
         worker->_gen.set_op(kQuery);
         worker->fill_the_queue();
@@ -18,7 +18,10 @@ namespace IX_NAME_SPACE {
     }
 
     pthread_t Reader::create_inserter() {
-        pthread_create(&worker_id, NULL, this->reader_threads, this);
+        std::thread working_thread;
+        working_thread = std::thread(reader_threads, this);
+        working_thread.join();
+//        pthread_create(&worker_id, NULL, this->reader_threads, this);
         std::cout << "start the Reader at pid: " << this->worker_id << std::endl;
         return this->worker_id;
     }

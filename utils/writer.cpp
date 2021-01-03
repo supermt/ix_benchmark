@@ -15,7 +15,7 @@ namespace IX_NAME_SPACE {
     void *Writer::writer_threads(void *args) {
         Producer *worker = Producer::parsed_from_voidptr(args);
         if (worker->depathed_or_not) {
-            pthread_detach(worker->worker_id);
+//            pthread_detach(pthread_self());
         }
         worker->_gen.set_op(kWrite);
         worker->fill_the_queue();

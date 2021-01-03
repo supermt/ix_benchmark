@@ -22,17 +22,17 @@ namespace IX_NAME_SPACE {
     }
 
     WorkloadEngine::workload_tuple WorkloadEngine::add_reader(long num, float qps) {
-        Reader temp = Reader(num, qps, *this->buffer_queue);
+        Reader temp = Reader(num, qps, NULL);
         return this->add_reader(temp);
     }
 
     WorkloadEngine::workload_tuple WorkloadEngine::add_writer(long num, float qps) {
-        Writer temp = Writer(num, qps, *this->buffer_queue);
+        Writer temp = Writer(num, qps, NULL);
         return this->add_writer(temp);
     }
 
     void WorkloadEngine::default_output_function(RequestEntry single_request) {
-        std::cout << single_request._key << " " << single_request._op << std::endl;
+        std::cout << single_request._op << std::endl;
     }
 
 
@@ -41,20 +41,24 @@ namespace IX_NAME_SPACE {
         int input_count = 0;
         for (Reader tmp:*test_engine.getReaders()) {
             input_count += tmp._num;
-            Reader reader(tmp);
-            reader.create_inserter();
+            tmp.target_array_ptr = &queue;
+            tmp.create_inserter();
         }
+
 
         for (Writer wr_tmp:*test_engine.getWriters()) {
             input_count += wr_tmp._num;
-            Writer writer(wr_tmp);
-            writer.create_inserter();
+            wr_tmp.target_array_ptr = &queue;
+            wr_tmp.create_inserter();
         }
+
+
         RequestEntry current_request;
         int i;
         for (int i = 0; i < input_count; i++) {
-            while (queue.try_dequeue(current_request)) {
-//                std::cout << "entry key " << current_request._key << std::endl;
+            bool getted = queue.try_dequeue(current_request);
+            std::cout << "entry key " << current_request._key.to_string() << std::endl;
+            if (getted) {
                 test_engine.output_func(current_request);
             }
         }

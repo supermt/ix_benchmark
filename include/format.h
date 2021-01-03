@@ -7,11 +7,13 @@
 
 #pragma once
 
+#include <sstream>
 #include "ix_namespace.h"
 #include "slice.h"
 
 namespace IX_NAME_SPACE {
     class Slice;
+
     class RequestEntry;
 
     enum OperationType {
@@ -36,10 +38,16 @@ namespace IX_NAME_SPACE {
 
         Key(double a) : _type(kDouble) { value = a; }
 
-        Key(Slice slice) : _type(kString) { slice_value = slice; }
+        Key(Slice
+            slice) :
+                _type(kString) { slice_value = slice; }
 
         Key(const char *input) : _type(kString) { slice_value = Slice(input); }
+
+        std::string to_string();
     };
+
+
 };
 
 
