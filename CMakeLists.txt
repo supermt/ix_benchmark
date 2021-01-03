@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.16)
 project(ix_benchmark)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -13,6 +13,9 @@ set(SOURCES
         utils/slice.cpp
         generator/key_gen.h
         container/concurrentqueue.h)
+
+
+include_directories(${PROJECT_SOURCE_DIR})
 
 find_package(Threads)
 

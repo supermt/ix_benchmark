@@ -5,15 +5,20 @@
 #ifndef IX_BENCHMARK_FORMAT_H
 #define IX_BENCHMARK_FORMAT_H
 
-#pragma once
+#include <cstdio>
+#include <cstdlib>
+#include <dirent.h>
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <random>
+#include <fstream>
 
 #include "ix_namespace.h"
 #include "slice.h"
 
 namespace IX_NAME_SPACE {
-    class Slice;
-    class RequestEntry;
-
     enum OperationType {
         kQuery = 0x00, // point look up
         kWrite = 0x01, // insert new data

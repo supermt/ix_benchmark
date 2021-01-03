@@ -11,26 +11,28 @@
 #include "container/concurrentqueue.h"
 
 //std::vector<IX_NAME_SPACE::RequestEntry> key_array;
-moodycamel::ConcurrentQueue<IX_NAME_SPACE::RequestEntry> key_array;
-
 auto time_window_size = IX_NAME_SPACE::ms_clock::duration(1000);
 
 namespace IX_NAME_SPACE {
+    template<typename KeyType, typename ValueType>
     struct InserterArgs {
-        InserterArgs(int qps, int num) : _qps(qps), _num(num) {}
+        InserterArgs(int qps, int num, moodycamel::ConcurrentQueue<RequestEntry<KeyType, ValueType>>* arr) : _qps(qps), _num(num), _key_array(arr) {}
 
         int _qps;
         int _num;
+        moodycamel::ConcurrentQueue<RequestEntry<KeyType, ValueType>>* _key_array;
     };
 
-    InserterArgs parse_int_args(void *arg) {
-        InserterArgs result = *((InserterArgs *) arg);
+    template<typename KeyType, typename ValueType>
+    InserterArgs<KeyType, ValueType> parse_int_args(void *arg) {
+        InserterArgs<KeyType, ValueType> result = *((InserterArgs<KeyType, ValueType> *) arg);
         return result;
     }
 
-    void fill_the_input_queue(moodycamel::ConcurrentQueue<IX_NAME_SPACE::RequestEntry> *target_queue_ptr, int num,
+    template<typename KeyType, typename ValueType>
+    void fill_the_input_queue(moodycamel::ConcurrentQueue<RequestEntry<KeyType, ValueType>> *target_queue_ptr, int num, 
                               RateLimiter *limiter,
-                              KeyGen *gen) {
+                              KeyGen<KeyType, ValueType> *gen) {
         while (num >= 0) {
             if (limiter->reqeust()) {
 //                target_queue_ptr->push_back(gen->getNext());
@@ -45,28 +47,30 @@ namespace IX_NAME_SPACE {
         return;
     }
 
+    template<typename KeyType, typename ValueType>
     void *read_inserter(void *arg) {
-        InserterArgs parsed_args = parse_int_args(arg);
+        InserterArgs<KeyType, ValueType> parsed_args = parse_int_args<KeyType, ValueType>(arg);
         int qps = parsed_args._qps;
         pthread_detach(pthread_self());
         std::cout << "read generator at QPS: " << qps << std::endl;
         RateLimiter read_limiter(qps, time_window_size);
-        IX_NAME_SPACE::KeyGen generator;
+        LogNormalGen<KeyType, ValueType> generator(kQuery);
 
-        fill_the_input_queue(&key_array, parsed_args._num, &read_limiter, &generator);
+        fill_the_input_queue(parsed_args._key_array, parsed_args._num, &read_limiter, &generator);
 //        delete (read_limiter);
         return NULL;
     }
 
+    template<typename KeyType, typename ValueType>
     void *write_inserter(void *arg) {
-        InserterArgs parsed_args = parse_int_args(arg);
+        InserterArgs<KeyType, ValueType> parsed_args = parse_int_args<KeyType, ValueType>(arg);
         int qps = parsed_args._qps;
         pthread_detach(pthread_self());
         std::cout << "write generator at QPS: " << qps << std::endl;
         RateLimiter write_limiter(qps, time_window_size);
-        IX_NAME_SPACE::KeyGen generator(index_benchmark::kWrite);
+        LogNormalGen<KeyType, ValueType> generator(kWrite);
 
-        fill_the_input_queue(&key_array, parsed_args._num, &write_limiter, &generator);
+        fill_the_input_queue(parsed_args._key_array, parsed_args._num, &write_limiter, &generator);
         return NULL;
 //        delete (write_limiter);
     }
@@ -78,17 +82,18 @@ void fill_by_two_threads(int duration, int num, float read_qps, float write_qps)
     float read_speed = read_qps;
     float write_speed = write_qps;
     pthread_t reader, writer;
-    IX_NAME_SPACE::InserterArgs reader_arg = IX_NAME_SPACE::InserterArgs(read_speed, num * (read_speed / (read_speed +
-                                                                                                          write_speed)));
-    IX_NAME_SPACE::InserterArgs writer_arg = IX_NAME_SPACE::InserterArgs(write_speed, num * (write_speed / (read_speed +
-                                                                                                            write_speed)));
+    moodycamel::ConcurrentQueue<IX_NAME_SPACE::RequestEntry<double, double>> key_array;
+    IX_NAME_SPACE::InserterArgs<double, double> reader_arg = IX_NAME_SPACE::InserterArgs<double, double>(read_speed, num * (read_speed / (read_speed +
+                                                                                                          write_speed)), &key_array);
+    IX_NAME_SPACE::InserterArgs<double, double> writer_arg = IX_NAME_SPACE::InserterArgs<double, double>(write_speed, num * (write_speed / (read_speed +
+                                                                                                            write_speed)), &key_array);
 
-    int read_state = pthread_create(&reader, NULL, IX_NAME_SPACE::read_inserter, &reader_arg);
-    int write_state = pthread_create(&writer, NULL, IX_NAME_SPACE::write_inserter, &writer_arg);
+    int read_state = pthread_create(&reader, NULL, IX_NAME_SPACE::read_inserter<double, double>, &reader_arg);
+    int write_state = pthread_create(&writer, NULL, IX_NAME_SPACE::write_inserter<double, double>, &writer_arg);
 
     std::cout << "poper started" << std::endl;
 
-    IX_NAME_SPACE::RequestEntry temp;
+    IX_NAME_SPACE::RequestEntry<double, double> temp;
     while (num >0){
         while(key_array.try_dequeue(temp)){
             std::cout << "dequeue the entry: " << std::fixed << temp._key << " entry seq: " << num << std::endl;

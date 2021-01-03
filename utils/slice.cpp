@@ -2,7 +2,7 @@
 // Created by jinghuan on 12/26/20.
 //
 
-#include "../include/slice.h"
+#include "include/slice.h"
 
 namespace IX_NAME_SPACE {
     char toHex(unsigned char v) {
