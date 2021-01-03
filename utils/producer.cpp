@@ -14,7 +14,7 @@ namespace IX_NAME_SPACE {
     void Producer::fill_the_queue() {
         while (_num >= 0) {
             if (_limiter.reqeust()) {
-//                std::cout << _num << std::endl;
+                std::cout << _num << std::endl;
                 target_array_ptr->enqueue(_gen.getNext());
                 _num--;
             }
@@ -51,18 +51,16 @@ namespace IX_NAME_SPACE {
             wr_tmp.target_array_ptr = &queue;
             wr_tmp.create_inserter();
         }
-
-
+        std::cout << input_count << " entries need to pop" << std::endl;
         RequestEntry current_request;
-        int i;
-        for (int i = 0; i < input_count; i++) {
-            bool getted = queue.try_dequeue(current_request);
-            std::cout << "entry key " << current_request._key.to_string() << std::endl;
-            if (getted) {
-                test_engine.output_func(current_request);
-            }
-        }
-        std::cout << "total poped entry count: " << i << std::endl;
+        sleep(10);
+
+//        while (input_count > 0) {
+//            while (queue.try_dequeue(current_request)) {
+//                test_engine.output_func(current_request);
+//                input_count--;
+//            }
+//        }
 
     }
 

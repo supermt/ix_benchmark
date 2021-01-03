@@ -35,15 +35,13 @@ namespace IX_NAME_SPACE {
 
         IX_NAME_SPACE::RequestEntry temp;
 
-        while (num >0){
-            while(key_array.try_dequeue(temp)){
-                std::cout << "dequeue the entry: " << std::fixed << temp._key << " entry seq: " << num << std::endl;
+        while (num > 0) {
+            while (key_array.try_dequeue(temp)) {
+                std::cout << "dequeue the entry: " << std::fixed << temp._key.to_string() << " entry seq: " << num
+                          << std::endl;
                 num--;
             };
         }
-
-        pthread_join(workerid1, NULL);
-        pthread_join(workerid2, NULL);
 
         return;
     }
@@ -52,7 +50,7 @@ namespace IX_NAME_SPACE {
 int main() {
     pthread_t read_thread_id;
     int a = 100;
-    IX_NAME_SPACE::fill_by_two_threads(10,1 * 1000, 100, 200);
+    IX_NAME_SPACE::fill_by_two_threads(10, 1 * 1000, 100, 200);
 
     // TO Shangyu:
     // The easiest way to generate a R/W shifting workload, for example, you can run the following functions for many times
