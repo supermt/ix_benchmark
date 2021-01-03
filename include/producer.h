@@ -144,6 +144,7 @@ namespace IX_NAME_SPACE {
         std::atomic<bool> _interrupt;
         std::atomic<long> _total_num;
 
+    public:
         void (*output_func)(RequestEntry single_request);
 
     public:
@@ -165,13 +166,13 @@ namespace IX_NAME_SPACE {
 
         inline workload_tuple add_reader(Reader &reader) {
             read_op_inserters.push_back(reader);
-            _total_num += reader._num;
+//            _total_num += reader._num;
             return get_workload_size();
         }
 
         inline workload_tuple add_writer(Writer &writer) {
             write_op_inserters.push_back(writer);
-            _total_num += writer._num;
+//            _total_num += writer._num;
             return get_workload_size();
         }
 
@@ -179,21 +180,19 @@ namespace IX_NAME_SPACE {
 
         workload_tuple add_writer(long num, float qps);
 
-        void start_workloads();
+        inline std::vector<Reader> *getReaders() { return &this->read_op_inserters; }
 
-        void consume();
+        inline std::vector<Writer> *getWriters() { return &this->write_op_inserters; }
 
-        long interrupt();
-
-        WorkloadEngine() : _interrupt(false), _total_num(0){
+        WorkloadEngine() : _interrupt(false), _total_num(0) {
             read_op_inserters = std::vector<Reader>();
             write_op_inserters = std::vector<Writer>();
             output_func = default_output_function; // the function must be static!
         }
 
         ~WorkloadEngine() {
-//            read_op_inserters.clear();
-//            write_op_inserters.clear();
+            read_op_inserters.clear();
+            write_op_inserters.clear();
         }
 
         //        static void *output_function(void *args);
@@ -204,7 +203,11 @@ namespace IX_NAME_SPACE {
         }
 
     };
-};
+
+
+    // end of Workload Engine
+    static void BootstrapTheEngine(WorkloadEngine &test_engine);
+}; // end namespace
 
 
 #endif //IX_BENCHMARK_PRODUCER_H

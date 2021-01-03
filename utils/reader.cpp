@@ -10,7 +10,7 @@ namespace IX_NAME_SPACE {
     void *Reader::reader_threads(void *arg) {
         Producer *worker = Producer::parsed_from_voidptr(arg);
         if (worker->depathed_or_not) {
-            pthread_detach(worker->worker_id);
+            pthread_detach(pthread_self());
         }
         worker->_gen.set_op(kQuery);
         worker->fill_the_queue();
