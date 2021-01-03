@@ -15,7 +15,7 @@ include_directories(
 add_library(ix_benchmark "" )
 target_sources(ix_benchmark
         PRIVATE
-        "utils/rate_limiter_new.cpp"
+        "utils/rate_limiter.cpp"
         "utils/rate_limiter.cpp"
         "utils/slice.cpp"
         "generator/key_gen.h"

@@ -6,37 +6,42 @@
 #define IX_BENCHMARK_RATE_LIMITER_H
 
 #include <mutex>
+
+#pragma once
+
 #include "include/rate_limiter/rate_limiter_interface.h"
 
-class RateLimiter : public RateLimiterInterface {
-public:
-    RateLimiter();
+namespace IX_NAME_SPACE {
+    class RateLimiter : public RateLimiterInterface {
+    public:
+        RateLimiter();
 
-    long aquire();
+        long aquire();
 
-    long aquire(int permits);
+        long aquire(int permits);
 
-    bool try_aquire(int timeouts);
+        bool try_aquire(int timeouts);
 
-    bool try_aquire(int permits, int timeout);
+        bool try_aquire(int permits, int timeout);
 
-    double get_rate() const;
+        double get_rate() const;
 
-    void set_rate(double rate);
+        void set_rate(double rate);
 
-private:
-    void sync(unsigned long long now);
+    private:
+        void sync(unsigned long long now);
 
-    std::chrono::microseconds claim_next(double permits);
+        std::chrono::microseconds claim_next(double permits);
 
-private:
-    double interval_;
-    double max_permits_;
-    double stored_permits_;
+    private:
+        double interval_;
+        double max_permits_;
+        double stored_permits_;
 
-    unsigned long long next_free_;
+        unsigned long long next_free_;
 
-    std::mutex mut_;
+        std::mutex mut_;
+    };
 };
 
 

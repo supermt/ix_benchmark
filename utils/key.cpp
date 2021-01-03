@@ -10,7 +10,7 @@ namespace IX_NAME_SPACE {
         std::string result;
         if (_type == kDouble) {
             std::ostringstream strs;
-            strs << value;
+            strs << "double " << value;
             result = strs.str();
         } else {
             result = slice_value.ToString();

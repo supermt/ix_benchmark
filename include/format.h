@@ -31,10 +31,8 @@ namespace IX_NAME_SPACE {
 
     struct Key {
         KeyType _type;
-        union {
-            double value;
-            Slice slice_value;
-        };
+        double value;
+        Slice slice_value;
 
         Key(double a) : _type(kDouble) { value = a; }
 

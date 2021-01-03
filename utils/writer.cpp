@@ -14,16 +14,16 @@ namespace IX_NAME_SPACE {
         return NULL;
     }
 
-    pthread_t Writer::create_inserter() {
+    std::thread Writer::create_inserter() {
         std::thread working_thread;
         working_thread = std::thread(writer_threads, this);
-        if (depathed_or_not) {
-            working_thread.detach();
-        } else {
-            working_thread.join();
-        }
+//        if (depathed_or_not) {
+//            working_thread.detach();
+//        } else {
+//            working_thread.join();
+//        }
         std::cout << "start the Writer at pid: " << this->worker_id << std::endl;
-        return this->worker_id;
+        return working_thread;
     }
 
     void Writer::initial_ken_gen() {

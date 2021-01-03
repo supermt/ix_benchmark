@@ -25,7 +25,7 @@ namespace IX_NAME_SPACE {
 
         RequestEntry getNext() {
             srand(time(NULL));
-            return RequestEntry(_op, (double) rand());
+            return RequestEntry(_op, 12345);
         }
 
 //        RequestEntry getNext(OperationType op) {

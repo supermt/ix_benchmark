@@ -1,5 +1,5 @@
 #include <iostream>
-#include "include/rate_limiter.h"
+#include "include/rate_limiter/rate_limiter.h"
 #include <unistd.h>
 #include "include/slice.h"
 #include "include/format.h"
@@ -13,7 +13,6 @@
 
 moodycamel::ConcurrentQueue<IX_NAME_SPACE::RequestEntry> key_array;
 
-auto time_window_size = IX_NAME_SPACE::ms_clock::duration(1000);
 
 namespace IX_NAME_SPACE {
 
@@ -23,14 +22,16 @@ namespace IX_NAME_SPACE {
         float write_speed = write_qps;
 
         Reader worker1(duration, num * (read_speed / (read_speed + write_speed)),
-                       read_qps, key_array);
+                       read_qps, &key_array);
         Writer worker2(duration, num * (write_speed / (read_speed + write_speed)),
-                       write_qps, key_array);
-        pthread_t workerid1, workerid2;
+                       write_qps, &key_array);
+        std::thread workerid1, workerid2;
         workerid1 = worker1.create_inserter();
         workerid2 = worker2.create_inserter();
 //        std::cout << sizeof(worker1) << std::endl;
 
+        workerid1.detach();
+        workerid2.detach();
         std::cout << "poper started" << std::endl;
 
         IX_NAME_SPACE::RequestEntry temp;

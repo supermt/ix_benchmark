@@ -6,7 +6,9 @@
 #define IX_BENCHMARK_PRODUCER_H
 #pragma once
 
-#include "rate_limiter.h"
+#include "rate_limiter/rate_limiter_interface.h"
+#include "rate_limiter/rate_limiter.h"
+
 #include <pthread.h>
 #include "generator/key_gen.h"
 #include "container/concurrentqueue.h" // this lib is not that reliable
@@ -17,7 +19,8 @@
 
 namespace IX_NAME_SPACE {
     // default time window with duration of one second
-    static auto default_time_window_size = ms_clock::duration(1000);
+    static auto default_time_window_size = 1;//ms_clock::duration(1000);
+
 
     class Reader;
 
@@ -33,45 +36,47 @@ namespace IX_NAME_SPACE {
 
     class Producer {
     public:
-        std::atomic<long> _num;
+        long _num;
         KeyGen _gen;
         const bool depathed_or_not = true; // just for cases
 
         RequestQueue *target_array_ptr;
-        RateLimiter _limiter;
+        IX_NAME_SPACE::RateLimiterInterface *_limiter;
 
         virtual void initial_ken_gen() = 0;
 
         pthread_t worker_id = -1;
     public:
-        Producer(int num, float qps, RequestQueue *key_array)
-                : _limiter(qps, default_time_window_size) {
+        Producer(int num, float qps, RequestQueue *key_array) {
             target_array_ptr = key_array;
             _num = num;
             _gen = KeyGen();
+            _limiter = new RateLimiter();
+            _limiter->set_rate(qps);
         }
 
+        Producer(const Producer &instance) {
+            _limiter = new RateLimiter();
+            _limiter->set_rate(instance._limiter->get_rate());
+            _num = instance._num;
+            _gen = instance._gen;
+        };
 
-        Producer(int duration, int num, float qps, RequestQueue &key_array)
-                : _limiter(qps, default_time_window_size) {
-            target_array_ptr = &key_array;
-            _num = std::min(static_cast<int>(duration * qps), num);
+
+        Producer(int duration, int num, float qps, RequestQueue *key_array) {
+            _limiter = new RateLimiter();
+            _limiter->set_rate(qps);
+            target_array_ptr = key_array;
+            _num = std::max(static_cast<int>(duration * qps), num);
             _gen = KeyGen();
         }
 
-        Producer(const Producer &instance) : _limiter(instance._limiter.limit_,
-                                                      instance._limiter.interval_) {
-            _num = instance._num.load();
-            _gen = instance._gen;
-            worker_id = instance.worker_id;
-            target_array_ptr = instance.target_array_ptr;
-        }
 
         void setKeyGen(KeyGen keyGen) { _gen = KeyGen(keyGen); };
 
         static Producer *parsed_from_voidptr(void *arg);
 
-        virtual pthread_t create_inserter() = 0;
+        virtual std::thread create_inserter() = 0;
 
         void fill_the_queue();
     };
@@ -84,7 +89,7 @@ namespace IX_NAME_SPACE {
     public:
         Reader(int duration,
                int num, float qps,
-               RequestQueue &key_array) :
+               RequestQueue *key_array) :
                 Producer(duration, num, qps, key_array) {
 //            _gen = KeyGen(kQuery);
             initial_ken_gen();
@@ -97,7 +102,7 @@ namespace IX_NAME_SPACE {
         }
 
 
-        pthread_t create_inserter() override;
+        std::thread create_inserter() override;
 
         static void *reader_threads(void *args);
     };
@@ -111,7 +116,7 @@ namespace IX_NAME_SPACE {
     public:
         Writer(int duration,
                int num, float qps,
-               RequestQueue &key_array) :
+               RequestQueue *key_array) :
                 Producer(duration, num, qps, key_array) {
 //            _gen = KeyGen(kWrite);
             initial_ken_gen();
@@ -122,16 +127,11 @@ namespace IX_NAME_SPACE {
             initial_ken_gen();
         }
 
-        pthread_t create_inserter() override;
+        std::thread create_inserter() override;
 
         static void *writer_threads(void *args);
     };
 
-    class scenario {
-        IX_NAME_SPACE::ms_clock::duration duration_seconds;
-
-        scenario() : duration_seconds(10 * 1000) {};
-    };
 
     class WorkloadEngine {
         std::vector<Reader> read_op_inserters;
@@ -140,7 +140,7 @@ namespace IX_NAME_SPACE {
         std::map<pthread_t, Producer *> running_threads;
 
         std::atomic<bool> _interrupt;
-        std::atomic<long> _total_num;
+        long _total_num;
 
     public:
         void (*output_func)(RequestEntry single_request);
@@ -196,10 +196,12 @@ namespace IX_NAME_SPACE {
 
         //        static void *output_function(void *args);
         static void default_output_function(RequestEntry single_request);
-
+        static void *default_consumer(void* arg);
         void set_output_func(void (*target_function)(RequestEntry)) {
             this->output_func = target_function;
         }
+
+        void consume();
 
     };
 
