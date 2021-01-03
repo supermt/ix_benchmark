@@ -5,14 +5,14 @@
 #ifndef IX_BENCHMARK_OP_BUCKET_H
 #define IX_BENCHMARK_OP_BUCKET_H
 
-#include "include/format.h"
-#include "include/slice.h"
+#include "../include/format.h"
+#include "../include/slice.h"
 
 namespace IX_NAME_SPACE {
     template<typename KeyType, typename ValueType>
     class RequestEntry {
-        OperationType _op;
     public:
+        OperationType _op;
         KeyType _key;
         ValueType _value;
 

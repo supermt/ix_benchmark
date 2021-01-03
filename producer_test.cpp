@@ -34,7 +34,7 @@ namespace IX_NAME_SPACE {
                               RateLimiter *limiter,
                               KeyGen<KeyType, ValueType> *gen) {
         while (num >= 0) {
-            if (limiter->reqeust()) {
+            if (limiter->request()) {
 //                target_queue_ptr->push_back(gen->getNext());
                 target_queue_ptr->enqueue(gen->getNext());
                 // TODO: change the std::vector into a more concurrent data structure

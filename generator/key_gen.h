@@ -6,8 +6,8 @@
 #define IX_BENCHMARK_KEY_GEN_H
 
 #include <stdlib.h>
-#include "include/format.h"
-#include "container/op_bucket.h"
+#include "../include/format.h"
+#include "../container/op_bucket.h"
 
 namespace IX_NAME_SPACE {
     template<typename KeyType, typename ValueType>

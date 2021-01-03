@@ -14,9 +14,6 @@ set(SOURCES
         generator/key_gen.h
         container/concurrentqueue.h)
 
-
-include_directories(${PROJECT_SOURCE_DIR})
-
 find_package(Threads)
 
 add_library(ix_interfaces INTERFACE)
