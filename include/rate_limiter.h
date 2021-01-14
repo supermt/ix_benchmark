@@ -29,7 +29,7 @@ namespace IX_NAME_SPACE {
         using clock = ms_clock;  // 1.
 
 
-        const uint64_t limit_;
+        uint64_t limit_;
         const clock::duration interval_;
         const clock::rep interval_count_;
 
@@ -67,6 +67,8 @@ namespace IX_NAME_SPACE {
                 return true;
             }
         }
+
+        void set_limit(uint64_t limit) { limit_ = limit; }
 
         double get_qps() const {
             return 1000.0 * this->limit_ / this->interval_count_;
