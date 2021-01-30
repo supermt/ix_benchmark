@@ -3,14 +3,14 @@
 #include <unistd.h>
 #include "include/slice.h"
 #include "include/format.h"
-#include "container/op_bucket.h"
+#include "include/container/op_bucket.h"
 #include <pthread.h>
 #include <vector>
 #include "generator/key_gen.h"
 #include <iomanip>
-#include "container/concurrentqueue.h"
+#include "include/container/concurrentqueue.h"
+#include "include/producer.h"
 
-//std::vector<IX_NAME_SPACE::RequestEntry> key_array;
 auto time_window_size = IX_NAME_SPACE::ms_clock::duration(1000);
 
 namespace IX_NAME_SPACE {
@@ -91,7 +91,8 @@ void fill_by_two_threads(int duration, int num, float read_qps, float write_qps)
     int read_state = pthread_create(&reader, NULL, IX_NAME_SPACE::read_inserter<double, double>, &reader_arg);
     int write_state = pthread_create(&writer, NULL, IX_NAME_SPACE::write_inserter<double, double>, &writer_arg);
 
-    std::cout << "poper started" << std::endl;
+    pthread_join(workerid1, NULL);
+    pthread_join(workerid2, NULL);
 
     IX_NAME_SPACE::RequestEntry<double, double> temp;
     while (num >0){
@@ -100,30 +101,19 @@ void fill_by_two_threads(int duration, int num, float read_qps, float write_qps)
             num--;
         };
     }
-
-//    sleep(duration);
-    pthread_join(reader, NULL);
-    pthread_join(writer, NULL);
-
-//    sleep(duration);
-//    pthread_cancel(reader);
-//    pthread_cancel(writer);
-
-//    std::cout << key_array.size() << std::endl;
-    return;
 }
 
 int main() {
     pthread_t read_thread_id;
     int a = 100;
-    fill_by_two_threads(10, 1 * 1000, 100, 200);
+    IX_NAME_SPACE::fill_by_two_threads(10,1 * 1000, 100, 200);
 
     // TO Shangyu:
     // The easiest way to generate a R/W shifting workload, for example, you can run the following functions for many times
 //    fill_by_two_threads(10, 1 * 1000, 200, 200); // this is a R:W 50% to 50%
 //    fill_by_two_threads(10, 10 * 1000, 800, 200); // this is a R:W 80% : 20%
 //    fill_by_two_threads(10, 1000 * 1000, 200, 200); // this is a R:W 50% to 50% workload again
-    // the duration and num, as you can see in the definition of the function, if the system run out of num first,
+    // the duration and _num, as you can see in the definition of the function, if the system run out of _num first,
     // the worker threads will shot and the main thread will sleep, until it's awaken.
     // However, if the duration time is run out of first, it will shutdown the threads, so you don;t need to worry about the
     // total number of it.

@@ -7,17 +7,22 @@
 
 #include <stdlib.h>
 #include "../include/format.h"
-#include "../container/op_bucket.h"
+#include "../include/container/op_bucket.h"
 
 namespace IX_NAME_SPACE {
     template<typename KeyType, typename ValueType>
     class KeyGen {
     protected:
         OperationType _op;
+        double _read_ratio;
     public:
         KeyGen() = delete;
         KeyGen(OperationType op) : _op(op) { }
         virtual RequestEntry<KeyType, ValueType> getNext() = 0;
+        
+        void set_read_ratio(double rr) {
+            _read_ratio = rr;
+        }
     };
 
     template<typename KeyType, typename ValueType>

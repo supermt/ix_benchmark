@@ -26,6 +26,7 @@ namespace IX_NAME_SPACE {
         kUpdateWithHint = 0x03, // update, if exists
         kDelete = 0x04, // single delete
         kSeek = 0x05, // range query
+        kRW = 0x06
     };
     enum KeyType {
         kDouble,
