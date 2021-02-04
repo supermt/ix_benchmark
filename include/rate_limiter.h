@@ -41,6 +41,9 @@ namespace IX_NAME_SPACE {
         constexpr RateLimiter(uint64_t limit, clock::duration interval) :
                 limit_(limit), interval_(interval), interval_count_(interval_.count()) {}
 
+        constexpr RateLimiter(clock::duration interval) :
+                limit_(0), interval_(interval), interval_count_(interval_.count()) {}
+
         RateLimiter(const RateLimiter &) = delete;             // 3.a.
         RateLimiter &operator=(const RateLimiter &) = delete;  // 3.b.
         RateLimiter(RateLimiter &&) = delete;                  // 3.c.
